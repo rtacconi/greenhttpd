@@ -41,6 +41,6 @@ The port is hard coded, for now. You can change the port by changing this line:
 
 unsigned short port = 8080;
 
-and recompile it. to stop the server just type CTRL + C like any other shell program. If you want to run it in the background:
+then recompile it. to stop the server just type CTRL + C like any other shell program. If you want to run it in the background:
 
 $ ./httpd &
