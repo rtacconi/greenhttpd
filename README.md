@@ -24,7 +24,8 @@ Installation
 ------------
 Go in the root of the project and compile it:
 
-$ cc -o httpd http-server.c -levent
+$ chmod +x build.sh 
+$ ./build.sh
 
 Usage
 -----
@@ -44,3 +45,18 @@ unsigned short port = 8080;
 then recompile it. to stop the server just type CTRL + C like any other shell program. If you want to run it in the background:
 
 $ ./httpd &
+
+
+
+Notes
+-----
+Dynamic linking:
+
+if(argc < 3)
+    return printf("USAGE: %s lib-file function-name\n", argv[0]);
+
+    lib = dlopen(argv[1], RTLD_NOW);
+    if(lib == NULL)
+        return printf("ERROR: Cannot load library\n");
+
+    df = dlsym(lib, argv[2]);

@@ -23,6 +23,7 @@
 #include <event2/event.h>
 #include <event2/http.h>
 #include <event2/buffer.h>
+#include <event2/bufferevent.h>
 #include <event2/util.h>
 #include <event2/keyvalq_struct.h>
 
@@ -37,11 +38,10 @@
 
 /* Compatibility for possible missing IPv6 declarations */
 #include "lib/util-internal.h"
+#include "servlet.h"
 
 // headers for http
 static void http_error_404(struct evhttp_request *req, int fd);
-static void http_error_500(struct evhttp_request *req, int fd);
-static void servlet(struct evhttp_request *req, struct evbuffer *evb);
                                        
 char uri_root[512];
 
@@ -142,12 +142,12 @@ static void send_document_cb(struct evhttp_request *req, void *arg) {
 	int fd = -1;
 	struct stat st;
     int disable_directrory_listing = 1;
-    int is_servlet = 0;
 
-	if (evhttp_request_get_command(req) != EVHTTP_REQ_GET) {
+	/*if ((evhttp_request_get_command(req) != EVHTTP_REQ_GET) || 
+	    (evhttp_request_get_command(req) != EVHTTP_REQ_POST)) {
 		dump_request_cb(req, arg);
 		return;
-	}
+	}*/
 
 	printf("Got a GET request for <%s>\n",  uri);
 
@@ -291,16 +291,6 @@ static void http_error_404(struct evhttp_request *req, int fd) {
 	if (fd >= 0) close(fd);
 }
 
-static void http_error_500(struct evhttp_request *req, int fd) {
-    evhttp_send_error(req, 500, "Internal server error");
-	if (fd >= 0) close(fd);
-}
-
-// function not used
-static void syntax(void) {
-	fprintf(stdout, "Syntax: http-server <docroot>\n");
-}
-
 int main(int argc, char **argv) {
 	struct event_base *base;
 	struct evhttp *http;
@@ -381,18 +371,4 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
-// SERVLET
-static void servlet(struct evhttp_request *req, struct evbuffer *evb) {
-    time_t now;
-    time(&now);
-    evbuffer_add_printf(evb, "<html>\n <head>\n"
-	    "  <title>%s</title>\n"
-	    " </head>\n"
-	    " <body>\n"
-	    "  <h1>%s</h1>\n"
-	    " <p>Current time is: %s</p>", 
-	    "C servlet engine", "C servlet", ctime(&now));
-    evhttp_add_header(evhttp_request_get_output_headers(req),
-	    "Content-Type", "text/html");
-	evhttp_send_reply(req, 200, "OK", evb);
-}
+
