@@ -6,7 +6,7 @@ to have fast web applications, low power consumption
 and money saving. The URL mapping for C scripts will use the REST convention
 and a routing tables will match the controllers in the script. For script 
 I mean an automatically compiled program, or compiled on demand.   
-
+    
 Design
 ------
 The heart of the server is the I/O event notification. Sockets are asynchronous, so not blocking. This allows to handle thousands of connection per second. Other high performance softwares using I/O event notification are nginx, memcached and others. This type of pattern work better than heavy threaded and fork-based solutions.
