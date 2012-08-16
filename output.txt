@@ -1,0 +1,6 @@
+Steve's number is 42!
+Bill's number is 33!
+George's number is 15!
+fydo's number is 74!
+
+6 allocated, 4 used

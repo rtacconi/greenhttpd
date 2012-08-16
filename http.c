@@ -142,12 +142,22 @@ static void send_document_cb(struct evhttp_request *req, void *arg) {
 	int fd = -1;
 	struct stat st;
     int disable_directrory_listing = 1;
+    const char *get_query;
 
 	/*if ((evhttp_request_get_command(req) != EVHTTP_REQ_GET) || 
 	    (evhttp_request_get_command(req) != EVHTTP_REQ_POST)) {
 		dump_request_cb(req, arg);
 		return;
 	}*/
+	
+    struct evkeyvalq *headers;
+    struct evkeyval *header;
+    headers = evhttp_request_get_input_headers(req);
+
+	for (header = headers->tqh_first; header;
+	    header = header->next.tqe_next) {
+		printf("  %s: %s\n", header->key, header->value);
+	}
 
 	printf("Got a GET request for <%s>\n",  uri);
 
@@ -158,6 +168,8 @@ static void send_document_cb(struct evhttp_request *req, void *arg) {
 		evhttp_send_error(req, HTTP_BADREQUEST, 0);
 		return;
 	}
+	
+	get_query = evhttp_uri_get_query(decoded);
 
 	/* Basic path routing. */
 	path = evhttp_uri_get_path(decoded);
@@ -168,7 +180,7 @@ static void send_document_cb(struct evhttp_request *req, void *arg) {
 	if (strcmp(path, "/servlet") == 0) {
         printf("C servlet engine started\n");
         evb = evbuffer_new();
-        servlet(req, evb);
+        servlet(req, evb, get_query);
 
     	if (whole_path)	free(whole_path);
     	if (evb) evbuffer_free(evb);
