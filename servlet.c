@@ -1,4 +1,5 @@
 #include "servlet.h"
+char *trim(char *str);
 
 void servlet(struct evhttp_request *req, struct evbuffer *evb, const char *get_query) {
     /*dbi_conn conn;
