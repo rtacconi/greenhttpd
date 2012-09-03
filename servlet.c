@@ -41,6 +41,7 @@ void servlet(struct evhttp_request *req, struct evbuffer *evb, const char *get_q
     const char *value;
     struct evkeyvalq params;
     char *data;
+    const char *get_data;
     
     if (evhttp_request_get_command(req) == EVHTTP_REQ_POST) {
         size_t len = evbuffer_get_length(evhttp_request_get_input_buffer(req));
@@ -48,12 +49,15 @@ void servlet(struct evhttp_request *req, struct evbuffer *evb, const char *get_q
         data = malloc(len + 1);
         evbuffer_copyout(in_evb, data, len);
         data[len] = '\0';
+        evhttp_parse_query_str(data, &params);
     } else if (evhttp_request_get_command(req) == EVHTTP_REQ_GET) {
         //data = malloc(strlen(data) + 1);
-        data = get_query;
+        get_data = get_query;
         //data[strlen(data)] = '\0';
+        evhttp_parse_query_str(get_data, &params);
     } else {
         data = "\0";
+        evhttp_parse_query_str(data, &params);
     }
     
     // read cookies
@@ -61,7 +65,6 @@ void servlet(struct evhttp_request *req, struct evbuffer *evb, const char *get_q
     // end cookies
     
     // Parse the query string
-    evhttp_parse_query_str(data, &params);
     value = evhttp_find_header(&params, "first_name");
     
     evbuffer_add_printf(evb, "<html>\n <head>\n"
@@ -95,6 +98,8 @@ void servlet(struct evhttp_request *req, struct evbuffer *evb, const char *get_q
 	if (evhttp_request_get_command(req) == EVHTTP_REQ_POST) {
 	    evhttp_clear_headers(&params);
         free(data);
+	} else if (evhttp_request_get_command(req) != EVHTTP_REQ_GET) {
+        free(data);
 	}
 }
 
@@ -106,13 +111,13 @@ char *http_get_cookie(struct evhttp_request *req, const char *key) {
 	for (header = headers->tqh_first; header; header = header->next.tqe_next) {
 	        // find cookie header
             if (strcmp(header->key, "Cookie") == 0) {
-                
+                return header->value;
             }
 	}
 	
-    return NULL;
+    return " ";
 }
-
+/*
 struct evkeyval *tokenize() {
     char s[] = "CSESSID=435J43L523J4TTYYY; email=rt@example.com";
     char* kv;
@@ -146,3 +151,4 @@ char *trim(char *str) {
 
   return str;
 }
+*/

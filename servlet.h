@@ -10,7 +10,7 @@
 #include <event2/util.h>
 #include <event2/keyvalq_struct.h>
 
-#include <dbi/dbi.h>
+//#include <dbi/dbi.h>
 
 void servlet(struct evhttp_request *req, struct evbuffer *evb, const char *get_query);
 char * http_get_cookie(struct evhttp_request *req, const char *key);
