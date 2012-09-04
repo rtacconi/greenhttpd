@@ -41,49 +41,39 @@ void servlet(struct evhttp_request *req, struct evbuffer *evb, const char *get_q
     const char *value;
     struct evkeyvalq params;
     char *data;
-    const char *get_data;
-    
-    if (evhttp_request_get_command(req) == EVHTTP_REQ_POST) {
-        size_t len = evbuffer_get_length(evhttp_request_get_input_buffer(req));
+    size_t len;
+
+
+    if (evhttp_request_get_command(req) == EVHTTP_REQ_GET) {
+        evhttp_parse_query_str(get_query, &params);
+        value = evhttp_find_header(&params, "first_name");
+    } else {
+        len = evbuffer_get_length(evhttp_request_get_input_buffer(req));
         struct evbuffer *in_evb = evhttp_request_get_input_buffer(req);
         data = malloc(len + 1);
         evbuffer_copyout(in_evb, data, len);
         data[len] = '\0';
         evhttp_parse_query_str(data, &params);
-    } else if (evhttp_request_get_command(req) == EVHTTP_REQ_GET) {
-        //data = malloc(strlen(data) + 1);
-        get_data = get_query;
-        //data[strlen(data)] = '\0';
-        evhttp_parse_query_str(get_data, &params);
-    } else {
-        data = "\0";
-        evhttp_parse_query_str(data, &params);
+        value = evhttp_find_header(&params, "first_name");
     }
-    
-    // read cookies
 
-    // end cookies
-    
-    // Parse the query string
-    value = evhttp_find_header(&params, "first_name");
     
     evbuffer_add_printf(evb, "<html>\n <head>\n"
-	    "  <title>%s</title>\n"
+	    "  <title>C servlet</title>\n"
 	    " </head>\n"
 	    " <body>\n"
-	    "  <h1>%s</h1>\n"
+	    "  <h1>C servlet</h1>\n"
 	    " <p>Current time is: %s (GMT)</p>" 
 	    " <p>First name is: %s</p>\n<hr>\n"
 	    "<form action=\"/servlet\" method=\"POST\">\n"
 	    "First name <input type=\"text\" name=\"first_name\">"
-	    "<input type=\"submit\" value=\"send\">"
+	    "<input type=\"submit\" value=\"send via post\">"
 	    "</form>\n"
 	    "<p>COOKIE: %s</p>"
-	    "</body><html>",
-	    "C servlet title", 
-	    "C servlet", 
+	    "<p><a href=\"/servlet?first_name=John\">GET with parameters</a></p>"
+	    "</body><html>", 
 	    ctime(&now),
-	    value,
+        value,
 	    http_get_cookie(req, "CSESSID"));
     evhttp_add_header(evhttp_request_get_output_headers(req),
 	    "Content-Type", "text/html");
@@ -95,10 +85,8 @@ void servlet(struct evhttp_request *req, struct evbuffer *evb, const char *get_q
 	    "Server", "green httpd");
 	evhttp_send_reply(req, 200, "OK", evb);
 	
-	if (evhttp_request_get_command(req) == EVHTTP_REQ_POST) {
+	if (evhttp_request_get_command(req) != EVHTTP_REQ_GET) {
 	    evhttp_clear_headers(&params);
-        free(data);
-	} else if (evhttp_request_get_command(req) != EVHTTP_REQ_GET) {
         free(data);
 	}
 }
